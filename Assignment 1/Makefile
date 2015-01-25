@@ -1,0 +1,3 @@
+CFlAGS=-Wall -g
+
+
