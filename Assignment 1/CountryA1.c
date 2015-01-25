@@ -2,7 +2,7 @@
 |			                Assignment 1: Love teh Pointer                                   |
 |Name: Ryan DePrekel                                                                         |
 |Due: 1-29-15                                                                                |
-|Course: CS2240                                                                              |                                
+|Course: CS2240                                                                              |
 |	   Reading File - [DONE]             													 |
 |	   Open file AllCountry.dat                                                              |
 |	   Read into 512 byte buffer [CHECK] and parse for desired fields 2,3,8,9. Back          |
@@ -40,10 +40,10 @@
      field 8: Population   = pop
      field 9: life expectancy = life_e
 */
-typedef struct
+typedef struct 
 {
 	char    code[3];
-	char    name[50]; 
+	char    name[30]; 
 	int     pop;
 	float   life_e;
 }country;
@@ -55,6 +55,7 @@ typedef struct
 //char[3]  userInput(); // Allow user to search for data structure
 char* GimmeALine(int FileDescrip);
 country* parseLine(char* line);
+void     printStruct(country** countryStruct, int numCountries);
 
 //Insert file as argument on terminal? !!!Write Prompt for user input!!!
 /*
@@ -76,9 +77,10 @@ int main(int argc, char *argv[])
 		err_sys("failed open!");
 	}
 
+	//printf("Outside of loop");
 	while((line = GimmeALine(infd)) != NULL){
 		//fprintf(stderr, "Line %u \n %s \n", lCount, line);
-		
+		//printf("Inside of loop");
 		if(numCountries >= countrySlots)
 		{
 			countrySlots += 50;
@@ -90,6 +92,8 @@ int main(int argc, char *argv[])
 		countries[numCountries] = TempCountry;
 		numCountries++;
 	}
+
+	printStruct(countries, numCountries);
 
 }
 
@@ -166,21 +170,23 @@ country* parseLine(char* line)
 	country* returnPointer;
 	token = strtok_r(line, ",", &token);
 
-	while(strlen(token)!=0)
+	//printf("in parseLine()");
+
+	while(strlen(token)!=0 && tokenNum < 10)
 	{
 		token = strtok_r(NULL, ",", &token);
 		switch(tokenNum){
 			case 1: 
-				returnCountry.code = strncpy(country.code, token, sizeof(country.code) + 1);
+				/*returnCountry.code = */strncpy(returnCountry.code, token, sizeof(returnCountry.code) + 1);
 				break;
 			case 2: 
-				returnCountry.name = strncpy(country.name, token, sizeof(country.name) + 1);
+				/*returnCountry.name =*/ strncpy(returnCountry.name, token, sizeof(returnCountry.name) + 1);
 				break;
 			case 7:
-				returnCountry.pop = atoi(token);
+				(*returnCountry).pop = atoi(token);
 				break;
 			case 8:
-				returnCountry.life_e = atof(token);
+				(*returnCountry).life_e = atof(token);
 				break;
 		}
 		tokenNum++;
@@ -190,3 +196,12 @@ country* parseLine(char* line)
 	return returnPointer;
 }
 
+void printStruct(country** countryStruct, int numCountries)
+{
+	int i;
+	for(i = 0; i < numCountries; i++)
+	{
+		printf("Code %s  , Name %s, Population %i, Life expectancy %f \n",countryStruct[i]->code, 
+			countryStruct[i]->name, countryStruct[i]->pop,countryStruct[i]->life_e);
+	}
+}
