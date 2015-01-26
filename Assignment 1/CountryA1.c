@@ -1,4 +1,4 @@
-/********************************************************************************************|
+/********************************************************************************************\
 |			                Assignment 1: Love teh Pointer                                   |
 |Name: Ryan DePrekel                                                                         |
 |Due: 1-29-15                                                                                |
@@ -8,7 +8,7 @@
 |	   Read into 512 byte buffer [CHECK] and parse for desired fields 2,3,8,9. Back          |
 |	   file pointer back to \n character and read new buffer.                                |
 |																							 |
-|	   Parsing Data - [NOT DONE]                                                             |
+|	   Parsing Data - [DONE]                                                                 |
 |	   Parsing these fields into an array of the struct country.                             |
 |	                                                                                         |
 |	   Sort Data  & Compute user input  - [NOT DONE]                                         |
@@ -23,7 +23,7 @@
 |                                                                                            |
 |                                                                                            |
 |                                                                                            |
-/********************************************************************************************/
+\********************************************************************************************/
 #include "apue.h" // Includes most standard libraries 
 #include <fcntl.h>
 #include <errno.h>
@@ -43,14 +43,12 @@
 typedef struct 
 {
 	char    code[3];
-	char    name[30]; 
+	char    name[50]; 
 	int     pop;
 	float   life_e;
 }country;
 
 // Function Prototypes 
-//void openFile();
-//void fillCountry(char** country);
 //country binSearch(char[3]); // binary search that returns country searched for
 //char[3]  userInput(); // Allow user to search for data structure
 char* GimmeALine(int FileDescrip);
@@ -65,11 +63,11 @@ void     printStruct(country** countryStruct, int numCountries);
 */
 int main(int argc, char *argv[])
 {
-	int infd, outfd, num = 0, countrySlots = 50, i = 0, numCountries = 0; // file descriptor, Country count, index
+	int infd, outfd, countrySlots = 50, i = 0, numCountries = 0; // file descriptor, Country count, index
 	char buff[BUFF];                                                      // buffer var probably not needed
 	char* line;                                                           // catches return value of GimmeALine
 	country** countries = malloc(50*sizeof(country*)); 
-	country*  TempCountry;                   //Array of country structs with 50 spots 
+	country  TempCountry;                   //Array of country structs with 50 spots 
 	
 	infd = open("AllCountries.dat", O_RDONLY);
 	if(infd < 0)
@@ -86,15 +84,14 @@ int main(int argc, char *argv[])
 			countrySlots += 50;
 			countries = realloc(countries, countrySlots*sizeof(country*));
 		}
-
-		
-		TempCountry = parseLine(line);
-		countries[numCountries] = TempCountry;
+		//countries[numCountries] = malloc(sizeof(country));
+		countries[numCountries] = parseLine(line);
 		numCountries++;
 	}
 
 	printStruct(countries, numCountries);
 
+	free(countries);
 }
 
 // Based off Dr. Trenary's code 
@@ -150,8 +147,6 @@ char* GimmeALine(int fd)
     }
     return returnLine;
 }
-
-
 /*
 	 field 2: country code = code
      field 3: country name = name
@@ -165,43 +160,54 @@ char* GimmeALine(int fd)
 country* parseLine(char* line)
 {
 	char*   token;
-	country returnCountry;
+	char*   tokPnt;
+	//country returnCountry;
 	int     tokenNum = 1;
-	country* returnPointer;
-	token = strtok_r(line, ",", &token);
+	country* returnPointer = malloc(sizeof(country));
+	token = strtok_r(line, ",", &tokPnt);
 
 	//printf("in parseLine()");
 
 	while(strlen(token)!=0 && tokenNum < 10)
 	{
-		token = strtok_r(NULL, ",", &token);
+		token = strtok_r(NULL, ",", &tokPnt);
 		switch(tokenNum){
 			case 1: 
-				/*returnCountry.code = */strncpy(returnCountry.code, token, sizeof(returnCountry.code) + 1);
+				/*returnCountry.code = */strncpy(returnPointer->code, token, sizeof(returnPointer->code) + 1);
 				break;
 			case 2: 
-				/*returnCountry.name =*/ strncpy(returnCountry.name, token, sizeof(returnCountry.name) + 1);
+				/*returnCountry.name =*/ strncpy(returnPointer->name, token, sizeof(returnPointer->name) + 1);
 				break;
 			case 7:
-				(*returnCountry).pop = atoi(token);
+				returnPointer->pop = atoi(token);
 				break;
 			case 8:
-				(*returnCountry).life_e = atof(token);
+				returnPointer->life_e = atof(token);
 				break;
 		}
 		tokenNum++;
 	}
-	returnPointer = &returnCountry;
+	//returnPointer = (*)returnCountry;
 
 	return returnPointer;
 }
 
+//Prints Struct with format; Code, Name, Population, Life_e
 void printStruct(country** countryStruct, int numCountries)
 {
 	int i;
 	for(i = 0; i < numCountries; i++)
 	{
-		printf("Code %s  , Name %s, Population %i, Life expectancy %f \n",countryStruct[i]->code, 
+		printf("%c%c%c, %s, %i, %f \n",countryStruct[i]->code[0], countryStruct[i]->code[1], countryStruct[i]->code[2],
 			countryStruct[i]->name, countryStruct[i]->pop,countryStruct[i]->life_e);
 	}
+}
+
+/*
+	Compares a country object based on country code
+	return -1 if less, 0 if equal, and 1 if greater
+*/
+void sort()
+{
+
 }
