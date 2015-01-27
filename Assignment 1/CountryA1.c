@@ -11,18 +11,19 @@
 |	   Parsing Data - [DONE]                                                                 |
 |	   Parsing these fields into an array of the struct country.                             |
 |	                                                                                         |
-|	   Sort Data  & Compute user input  - [NOT DONE]                                         |
+|	   Sort Data [Done]  & Compute user input  - [DONE]                                      |
 |	   Sort                                                                                  |
 |	   Allow user to search array of countrys to find based on Country Code.                 |
 |	   Using binary search.               													 |
+|      	                                                                                     |
 |                                                                                            |
-|	   Write to Bin - [NOT DONE]                                                             |
+|	   Write to Bin - [DONE]                                                                 |
 |	   Write data to a binary file. (probably) write to a directory							 |
 |	 																					     |
-|                                                                                            |
-|                                                                                            |
-|                                                                                            |
-|                                                                                            |
+|      -HOW TO USE-                                                                          |
+|      After starting executeable, you will be prompted with a flashing cursor               |
+|      which you can input in a country code[Three characters long] for search               |
+|      in the country data structure                                                         |
 \********************************************************************************************/
 #include "apue.h" // Includes most standard libraries 
 #include <fcntl.h>
@@ -33,6 +34,7 @@
 #define BUFF 512
 #define FALSE 0
 #define TRUE 1
+#define STDIN 0
 /*
      Struct to define fields that are desired from file
      field 2: country code = code
@@ -49,11 +51,12 @@ typedef struct
 }country;
 
 // Function Prototypes 
-//country binSearch(char[3]); // binary search that returns country searched for
-//char[3]  userInput(); // Allow user to search for data structure
-char* GimmeALine(int FileDescrip);
+char*    GimmeALine(int FileDescrip);
 country* parseLine(char* line);
 void     printStruct(country** countryStruct, int numCountries);
+void     sort(country** countries, int numCountries);
+country* search(char* in,country** list, int numCountries);
+void     printRecord(country* country);
 
 //Insert file as argument on terminal? !!!Write Prompt for user input!!!
 /*
@@ -63,13 +66,14 @@ void     printStruct(country** countryStruct, int numCountries);
 */
 int main(int argc, char *argv[])
 {
-	int infd, outfd, countrySlots = 50, i = 0, numCountries = 0; // file descriptor, Country count, index
+	int infd, outfd, countrySlots = 50, i = 0, numCountries = 0;          // file descriptor, Country count, index
 	char buff[BUFF];                                                      // buffer var probably not needed
-	char* line;                                                           // catches return value of GimmeALine
-	country** countries = malloc(50*sizeof(country*)); 
-	country  TempCountry;                   //Array of country structs with 50 spots 
-	
+	char* line;															  // catches return value of GimmeALine
+	char  in[4];                                                          // user input varible   
+	country** countries = malloc(50*sizeof(country*));                    // Array of country structs with 50 spots                   
+	country* foundCountry = malloc(sizeof(country*));
 	infd = open("AllCountries.dat", O_RDONLY);
+	outfd = open("log.bin", O_WRONLY, S_IWUSR);
 	if(infd < 0)
 	{
 		err_sys("failed open!");
@@ -86,15 +90,32 @@ int main(int argc, char *argv[])
 		}
 		//countries[numCountries] = malloc(sizeof(country));
 		countries[numCountries] = parseLine(line);
+		sort(countries, numCountries);
 		numCountries++;
+
 	}
 
-	printStruct(countries, numCountries);
+	for(i = 0; i < numCountries; i++)
+	{
+		write(outfd, countries[i], sizeof(country));
+	}
 
+	while(read(0,in,4)==4)
+	{
+		foundCountry = search(in,countries,numCountries);
+		if(foundCountry != NULL)
+			printRecord(foundCountry);
+	}
+	//printStruct(countries, numCountries);
+	for(i = 0; i < numCountries; i++)
+	{
+		free(countries[i]);
+	}
+	free(foundCountry);
 	free(countries);
 }
 
-// Based off Dr. Trenary's code 
+// Based off Dr. Trenary's code, Thanks Dr. Trenary!! 
 char* GimmeALine(int fd)
 {
 	static char  buffer[BUFF+1];
@@ -147,6 +168,8 @@ char* GimmeALine(int fd)
     }
     return returnLine;
 }
+
+
 /*
 	 field 2: country code = code
      field 3: country name = name
@@ -173,10 +196,10 @@ country* parseLine(char* line)
 		token = strtok_r(NULL, ",", &tokPnt);
 		switch(tokenNum){
 			case 1: 
-				/*returnCountry.code = */strncpy(returnPointer->code, token, sizeof(returnPointer->code) + 1);
+				strncpy(returnPointer->code, token, sizeof(returnPointer->code) + 1);
 				break;
 			case 2: 
-				/*returnCountry.name =*/ strncpy(returnPointer->name, token, sizeof(returnPointer->name) + 1);
+				strncpy(returnPointer->name, token, sizeof(returnPointer->name) + 1);
 				break;
 			case 7:
 				returnPointer->pop = atoi(token);
@@ -188,26 +211,83 @@ country* parseLine(char* line)
 		tokenNum++;
 	}
 	//returnPointer = (*)returnCountry;
-
 	return returnPointer;
 }
 
 //Prints Struct with format; Code, Name, Population, Life_e
+// Mostly for testing
 void printStruct(country** countryStruct, int numCountries)
 {
 	int i;
 	for(i = 0; i < numCountries; i++)
 	{
-		printf("%c%c%c, %s, %i, %f \n",countryStruct[i]->code[0], countryStruct[i]->code[1], countryStruct[i]->code[2],
+		printf("%c%c%c, %s, %i, %4.2f \n",countryStruct[i]->code[0], countryStruct[i]->code[1], countryStruct[i]->code[2],
 			countryStruct[i]->name, countryStruct[i]->pop,countryStruct[i]->life_e);
 	}
+}
+
+void printRecord(country* country){
+	printf("%c%c%c, %s, %i, %4.2f \n",country->code[0], country->code[1], country->code[2],
+			country->name, country->pop,country->life_e);
 }
 
 /*
 	Compares a country object based on country code
 	return -1 if less, 0 if equal, and 1 if greater
-*/
-void sort()
-{
+	bubbles up the pointer if needed. 
 
+*/
+
+void sort(country** countries, int numCountries)
+{
+	int i;
+	country* tempCountry;
+	//Since a new country is added at end of array need to compare to records above 
+	//so I'm starting at numCountries and working my way back up to the first record.
+
+    if (numCountries > 0)
+    {
+        for (i = numCountries - 1; i >= 0; i--)
+        {
+
+            if (strncmp(countries[i+1]->code, countries[i]->code, 3) < 0)
+            {
+                //swap
+                tempCountry    = countries[i];
+                countries[i]   = countries[i + 1];
+                countries[i + 1] = tempCountry;
+            }
+            
+        }
+    }
+}
+
+/*
+	Binary Search for country
+	key = user input
+	list = country struct
+	numCountries = number of countries in struct
+*/
+
+country* search(char* key, country** list, int numCountries)
+{
+	int first, last, mid;
+	first = 0; last = numCountries - 1; mid = (first + last)/2;
+
+	while (first <= last)
+	{
+		if(strncmp(list[mid]->code, key, 3) < 0)
+			first = mid + 1;
+		else if (strncmp(list[mid]->code, key, 3) > 0)
+			last = mid - 1;
+		else
+			return list[mid];
+		mid = (first + last)/2;
+	}
+
+	if( first > last)
+	{
+		puts("NO matches");
+		return NULL;
+	} 
 }
