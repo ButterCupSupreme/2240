@@ -226,6 +226,8 @@ void printStruct(country** countryStruct, int numCountries)
 	}
 }
 
+// Prints the record passed to the function
+
 void printRecord(country* country){
 	printf("%c%c%c, %s, %i, %4.2f \n",country->code[0], country->code[1], country->code[2],
 			country->name, country->pop,country->life_e);
