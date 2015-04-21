@@ -1,0 +1,37 @@
+This is document is for the design of malloc, calloc, realloc, and free. 
+			I think I am doing a first-fit solution.
+
+
+                      HEAP
+==================================================
+|                   Meta-data                    |  Meta-data will hold at least 
+|________________________________________________|  a pointer to the next block of memory,
+|                                                |  size of the block, and a flag to see if
+|                                                |  the block of memory is free. 
+|                     DATA                       |	 
+|                                                |  struct           //Simple struct? 
+|                                                |   {
+|________________________________________________|      size_t    sizeOfBlock
+|                                                |      mem_block next
+|                  Meta-data                     |      int       free 
+|________________________________________________|    }mem_block;
+|                                                |  
+|                                                |
+|                                                |
+|                     DATA                       |
+|                                                |
+|________________________________________________|
+|                                                |
+|                  Meta-data                     |
+|________________________________________________|
+|                                                |
+|                                                |
+|                    DATA                        |
+|                                                |
+|________________________________________________|
+|                                                |
+|                                                |
+|                 Free Space                     |
+|                                                |
+|                                                |
+==================================================
