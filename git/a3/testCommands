@@ -1,0 +1,6 @@
+ls 
+ls > file 
+cat < file 
+cat < file | grep a > file
+exit  
+
